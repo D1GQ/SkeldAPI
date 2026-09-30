@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37531.7 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkeldApi", "SkeldApi.csproj", "{A400078C-3D85-3652-49D2-599972D28F70}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Beta|Any CPU = Beta|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A400078C-3D85-3652-49D2-599972D28F70}.Beta|Any CPU.ActiveCfg = Beta|Any CPU
+		{A400078C-3D85-3652-49D2-599972D28F70}.Beta|Any CPU.Build.0 = Beta|Any CPU
+		{A400078C-3D85-3652-49D2-599972D28F70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A400078C-3D85-3652-49D2-599972D28F70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A400078C-3D85-3652-49D2-599972D28F70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A400078C-3D85-3652-49D2-599972D28F70}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D10DD621-0761-4AF0-8B97-3B48F76068B8}
+	EndGlobalSection
+EndGlobal
