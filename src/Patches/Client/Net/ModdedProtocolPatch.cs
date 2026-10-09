@@ -5,6 +5,24 @@ namespace SkeldApi.Patches.Client.Net;
 [HarmonyPatch]
 internal sealed class ModdedProtocolPatch
 {
+    internal static bool TryToGenerateGuid(out Guid guid)
+    {
+        guid = default;
+        var mods = SkeldPlugin.SkeldMods.OrderBy(mod => mod.GetGuid()).ToList();
+        if (mods.Count == 0)
+            return false;
+
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = new byte[16];
+        var input = string.Join("|", mods.Select(m => m.GetGuid()));
+        var hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
+        Array.Copy(hash, bytes, 16);
+        bytes[7] = (byte)((bytes[7] & 0x0F) | 0x40);
+        bytes[8] = (byte)((bytes[8] & 0x3F) | 0x80);
+        guid = new Guid(bytes);
+        return true;
+    }
+
     [HarmonyPatch(typeof(CurrentModRegistration), nameof(CurrentModRegistration.TryGetModRegistrationGuid))]
     [HarmonyPrefix]
     private static bool CurrentModRegistration_TryGetModRegistrationGuid_Prefix(out Guid guid, ref bool __result)
@@ -16,7 +34,12 @@ internal sealed class ModdedProtocolPatch
             return false;
         }
 
-        // Looking into automatically generating a guid based off of mods and their versions
+        if (TryToGenerateGuid(out var id))
+        {
+            guid = id;
+            __result = true;
+            return false;
+        }
 
         guid = default;
         __result = false;

@@ -2,5 +2,5 @@
 
 public interface IShapeshifterRole : IImpostorRole
 {
-    bool CheckShapeshift(PlayerControl target, ref bool shouldAnimate);
+    bool Shapeshift(PlayerControl target, ref bool shouldAnimate);
 }

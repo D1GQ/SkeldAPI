@@ -2,7 +2,7 @@
 
 namespace SkeldApi.Roles;
 
-public class VanillaRole : CustomRoleBehavior
+public class VanillaRole : CustomRole
 {
     private RoleTypes _roleType;
     public override RoleTypes InitialVanillaRoleType => _roleType;

@@ -3,28 +3,28 @@ using UnityEngine;
 
 namespace SkeldApi.Roles;
 
-public abstract class CustomRoleBehavior : MonoBehaviour
+public abstract class CustomRole : MonoBehaviour
 {
     public PlayerControl Player { get; internal set; } = null!;
     public abstract RoleTypes InitialVanillaRoleType { get; }
 
-    internal void HostInitialize(PlayerControl player)
+    internal void Initialize(PlayerControl player)
     {
         Player = player;
         RpcSetVanillaRole(InitialVanillaRoleType);
-        OnHostInitialize(player);
+        OnInitialize(player);
     }
 
-    protected virtual void OnHostInitialize(PlayerControl player)
+    protected virtual void OnInitialize(PlayerControl player)
     {
     }
 
-    internal void HostDeinitialize()
+    internal void Deinitialize()
     {
-        OnHostDeinitialize();
+        OnDeinitialize();
     }
 
-    protected virtual void OnHostDeinitialize()
+    protected virtual void OnDeinitialize()
     {
     }
 

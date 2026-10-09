@@ -3,93 +3,71 @@ using System.Reflection;
 
 namespace SkeldApi;
 
-internal partial class SkeldPlugin
+public partial class SkeldPlugin
 {
     /// <summary>
     /// Contains metadata and constants for the BetterAmongUs mod.
     /// </summary>
-    internal static class ModInfo
+    public static class ModInfo
     {
         /// <summary>
         /// The base version number of the mod in MAJOR.MINOR.PATCH format.
         /// </summary>
-        internal const string VERSION_NUMBER = "1.0.0";
+        public const string VERSION_NUMBER = "1.0.0";
 
         /// <summary>
         /// The beta release number. Increment this for each beta release.
         /// </summary>
-        internal const string BETA_NUMBER = "0";
+        public const string BETA_NUMBER = "0";
 
         /// <summary>
         /// Gets the full version string for the current build configuration.
         /// </summary>
 #if RELEASE
-        internal const string VERSION = VERSION_NUMBER;
+        public const string VERSION = VERSION_NUMBER;
 #elif BETA
-        internal const string VERSION = $"{VERSION_NUMBER}-beta-{BETA_NUMBER}";
+        public const string VERSION = $"{VERSION_NUMBER}-beta-{BETA_NUMBER}";
 #endif
 
         /// <summary>
         /// Gets the full version string with a v prefix for the current build configuration.
         /// </summary>
-        internal const string VERSION_STRING = "v" + VERSION;
+        public const string VERSION_STRING = "v" + VERSION;
 
         /// <summary>
         /// Gets the parsed semantic version of the mod.
         /// </summary>
-        internal static readonly SemVersion SemVersion = SemVersion.Parse(VERSION);
+        public static readonly SemVersion SemVersion = SemVersion.Parse(VERSION);
 
         /// <summary>
         /// Gets the Git commit hash from assembly metadata.
         /// </summary>
-        // public static string CommitHash = ThisAssembly.Git.Commit;
+        public const string CommitHash = ThisAssembly.Git.Commit;
 
         /// <summary>
         /// Gets the build date from assembly metadata.
         /// </summary>
-        public static string BuildDate = ThisAssembly.Metadata.BuildDate;
+        public const string BuildDate = ThisAssembly.Metadata.BuildDate;
 
         /// <summary>
         /// The name of SkeldAPI.
         /// </summary>
-        internal const string PLUGIN_NAME = "SkeldAPI";
+        public const string PLUGIN_NAME = "SkeldAPI";
 
         /// <summary>
         /// The GUID (Globally Unique Identifier) of SkeldAPI.
         /// </summary>
-        internal const string PLUGIN_GUID = "com.d1gq.skeldapi";
-
-        /// <summary>
-        /// Gets the list of supported Among Us versions.
-        /// </summary>
-        internal static string[] SupportedAmongUsVersions =
-        [
-            "2026.8.18"
-        ];
+        public const string PLUGIN_GUID = "com.d1gq.skeldapi";
 
         /// <summary>
         /// The GitHub repository URL for SkeldAPI.
         /// </summary>
-        // internal const string GITHUB = ThisAssembly.Git.RepositoryUrl;
+        public const string GITHUB = ThisAssembly.Git.RepositoryUrl;
 
         /// <summary>
-        /// Retrieves metadata from the assembly attributes.
+        /// The SkeldAPI assembly.
         /// </summary>
-        /// <param name="key">The metadata key to retrieve.</param>
-        /// <returns>The metadata value, or an empty string if not found.</returns>
-        private static string GetAssemblyMetadata(string key)
-        {
-            var attribute = Assembly
-                .GetCustomAttributes<AssemblyMetadataAttribute>()
-                .FirstOrDefault(a => a.Key == key);
-
-            return attribute?.Value ?? string.Empty;
-        }
-
-        /// <summary>
-        /// The assembly associated to this mod.
-        /// </summary>
-        internal static Assembly Assembly
+        public static Assembly Assembly
         {
             get
             {
