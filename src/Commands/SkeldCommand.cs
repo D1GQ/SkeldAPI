@@ -1,15 +1,21 @@
 ﻿using SkeldApi.Commands.Arguments;
+using System.Collections.ObjectModel;
 
 namespace SkeldApi.Commands;
 
 public abstract class SkeldCommand
 {
+    public static ReadOnlyCollection<SkeldCommand> AllCommands => Commands.AsReadOnly();
+    internal static readonly List<SkeldCommand> Commands = [];
+
     internal string[] CommandNames = [];
     internal SkeldCmdArg[] CommandArguments = [];
     internal void Initialize()
     {
         List<SkeldCmdArg> commandArguments = [];
-        OnInitialize(CommandNames, commandArguments);
+        List<string> commandNamesList = [];
+        OnInitialize(commandNamesList, commandArguments);
+        CommandNames = [.. commandNamesList];
         CommandArguments = [.. commandArguments.OrderBy(ca => ca.Required)];
         foreach (var argument in CommandArguments)
         {
@@ -17,7 +23,7 @@ public abstract class SkeldCommand
         }
     }
 
-    public abstract void OnInitialize(string[] commandNames, List<SkeldCmdArg> commandArguments);
+    public abstract void OnInitialize(List<string> commandNames, List<SkeldCmdArg> commandArguments);
 
     internal void RunCommand(PlayerControl sender, string[] args)
     {

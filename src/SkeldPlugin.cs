@@ -4,6 +4,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
+using SkeldApi.Attributes;
 
 namespace SkeldApi;
 
@@ -27,6 +28,13 @@ public partial class SkeldPlugin : BasePlugin
         {
             AddSkeldMod(pluginInfo);
         }
+
+        IL2CPPChainloader.Instance.Finished += ChainloaderLoad;
+    }
+
+    private void ChainloaderLoad()
+    {
+        RegisterCommandAttribute.Initialize();
     }
 
     internal static void AddSkeldMod(PluginInfo pluginInfo)

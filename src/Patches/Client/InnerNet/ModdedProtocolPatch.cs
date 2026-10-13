@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 
-namespace SkeldApi.Patches.Client.Net;
+namespace SkeldApi.Patches.Client.InnerNet;
 
 [HarmonyPatch]
 internal sealed class ModdedProtocolPatch
@@ -17,8 +17,8 @@ internal sealed class ModdedProtocolPatch
         var input = string.Join("|", mods.Select(m => m.GetGuid()));
         var hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
         Array.Copy(hash, bytes, 16);
-        bytes[7] = (byte)((bytes[7] & 0x0F) | 0x40);
-        bytes[8] = (byte)((bytes[8] & 0x3F) | 0x80);
+        bytes[7] = (byte)(bytes[7] & 0x0F | 0x40);
+        bytes[8] = (byte)(bytes[8] & 0x3F | 0x80);
         guid = new Guid(bytes);
         return true;
     }
