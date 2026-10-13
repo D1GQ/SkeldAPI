@@ -1,9 +1,11 @@
-﻿using SkeldApi.Enums;
+﻿using SkeldApi.Attributes;
+using SkeldApi.Enums;
 using SkeldApi.Interfaces;
 using System.Collections;
 
 namespace SkeldApi.Modules.GameModes;
 
+[RegisterGameMode(SkeldGameModes.Normal)]
 internal class NormalGameMode : IGameMode
 {
     public void OnStart()
@@ -16,17 +18,17 @@ internal class NormalGameMode : IGameMode
         throw new NotImplementedException();
     }
 
-    public IEnumerator CoFixBlackScreenAfterMeeting(EndGameCondition endGameCondition)
+    public IEnumerator CoFixBlackScreenAfterMeeting(EndGameConditions endGameCondition)
     {
         throw new NotImplementedException();
     }
 
-    public EndGameCondition CheckEndGame()
+    public EndGameConditions CheckEndGame()
     {
         throw new NotImplementedException();
     }
 
-    public EndGameCondition CheckEndGameOnExiled(NetworkedPlayerInfo? exiled)
+    public EndGameConditions CheckEndGameOnExiled(NetworkedPlayerInfo? exiled)
     {
         throw new NotImplementedException();
     }

@@ -1,6 +1,6 @@
 ﻿namespace SkeldApi.Enums;
 
-public enum EndGameCondition
+public enum EndGameConditions
 {
     None,
     CrewmatesWinByNumbers,

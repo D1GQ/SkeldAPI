@@ -1,13 +1,9 @@
 ﻿using SkeldApi.Commands.Arguments;
-using System.Collections.ObjectModel;
 
 namespace SkeldApi.Commands;
 
 public abstract class SkeldCommand
 {
-    public static ReadOnlyCollection<SkeldCommand> AllCommands => Commands.AsReadOnly();
-    internal static readonly List<SkeldCommand> Commands = [];
-
     internal string[] CommandNames = [];
     internal SkeldCmdArg[] CommandArguments = [];
     internal void Initialize()

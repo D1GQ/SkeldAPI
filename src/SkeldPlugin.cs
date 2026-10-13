@@ -5,6 +5,7 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using SkeldApi.Attributes;
+using System.Reflection;
 
 namespace SkeldApi;
 
@@ -29,12 +30,20 @@ public partial class SkeldPlugin : BasePlugin
             AddSkeldMod(pluginInfo);
         }
 
+        IL2CPPChainloader.Instance.PluginLoad += ChainloaderPluginLoad;
         IL2CPPChainloader.Instance.Finished += ChainloaderLoad;
+    }
+
+    private void ChainloaderPluginLoad(PluginInfo pluginInfo, Assembly assembly, BasePlugin basePlugin)
+    {
+        if (pluginInfo.Dependencies.Any(dep => dep.DependencyGUID == ModInfo.PLUGIN_GUID))
+        {
+            AddSkeldMod(pluginInfo);
+        }
     }
 
     private void ChainloaderLoad()
     {
-        RegisterCommandAttribute.Initialize();
     }
 
     internal static void AddSkeldMod(PluginInfo pluginInfo)
@@ -47,12 +56,17 @@ public partial class SkeldPlugin : BasePlugin
 
         var skeldMod = new SkeldMod(pluginInfo);
         SkeldMods.Add(skeldMod);
+
+        RegisterCommandAttribute.RegisterFrom(skeldMod.Assembly);
+        RegisterGameModeAttribute.RegisterFrom(skeldMod.Assembly);
+        RegisterCustomRoleAttribute.RegisterFrom(skeldMod.Assembly);
     }
 
     internal sealed class SkeldMod(PluginInfo pluginInfo)
     {
         internal readonly PluginInfo PluginInfo = pluginInfo;
         internal readonly BasePlugin Plugin = (BasePlugin)pluginInfo.Instance;
+        internal readonly Assembly Assembly = pluginInfo.Instance.GetType().Assembly;
         internal string GetGuid()
         {
             return PluginInfo.Metadata.GUID;

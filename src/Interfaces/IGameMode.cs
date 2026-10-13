@@ -9,11 +9,11 @@ public interface IGameMode
 
     void Update();
 
-    EndGameCondition CheckEndGame();
+    EndGameConditions CheckEndGame();
 
-    EndGameCondition CheckEndGameOnExiled(NetworkedPlayerInfo? exiled);
+    EndGameConditions CheckEndGameOnExiled(NetworkedPlayerInfo? exiled);
 
-    IEnumerator CoFixBlackScreenAfterMeeting(EndGameCondition endGameCondition);
+    IEnumerator CoFixBlackScreenAfterMeeting(EndGameConditions endGameCondition);
 
     void OnEnd();
 }
