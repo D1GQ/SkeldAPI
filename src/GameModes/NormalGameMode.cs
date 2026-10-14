@@ -3,7 +3,7 @@ using SkeldApi.Enums;
 using SkeldApi.Interfaces;
 using System.Collections;
 
-namespace SkeldApi.Modules.GameModes;
+namespace SkeldApi.GameModes;
 
 [RegisterGameMode(SkeldGameModes.Normal)]
 internal class NormalGameMode : IGameMode

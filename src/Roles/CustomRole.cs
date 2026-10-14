@@ -1,10 +1,15 @@
 ﻿using AmongUs.GameOptions;
+using SkeldApi.Interfaces;
+using SkeldApi.Structs;
 using UnityEngine;
 
 namespace SkeldApi.Roles;
 
-public abstract class CustomRole : MonoBehaviour
+public abstract class CustomRole : MonoBehaviour, IUniquelyIdentifiable
 {
+    public Enum RoleType { get; internal set; } = default!;
+    public string GUID { get; internal set; } = string.Empty;
+    public Gid GID { get; internal set; }
     public PlayerControl Player { get; internal set; } = null!;
     public abstract RoleTypes InitialVanillaRoleType { get; }
 

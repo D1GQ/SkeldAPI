@@ -5,6 +5,9 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using SkeldApi.Attributes;
+using SkeldApi.Interfaces;
+using SkeldApi.Managers;
+using SkeldApi.Structs;
 using System.Reflection;
 
 namespace SkeldApi;
@@ -27,7 +30,7 @@ public partial class SkeldPlugin : BasePlugin
 
         if (IL2CPPChainloader.Instance.Plugins.TryGetValue(ModInfo.PLUGIN_GUID, out var pluginInfo))
         {
-            AddSkeldMod(pluginInfo);
+            AddSkeldMod(pluginInfo, this);
         }
 
         IL2CPPChainloader.Instance.PluginLoad += ChainloaderPluginLoad;
@@ -38,38 +41,43 @@ public partial class SkeldPlugin : BasePlugin
     {
         if (pluginInfo.Dependencies.Any(dep => dep.DependencyGUID == ModInfo.PLUGIN_GUID))
         {
-            AddSkeldMod(pluginInfo);
+            AddSkeldMod(pluginInfo, basePlugin);
         }
+    }
+
+    internal void AddSkeldMod(PluginInfo pluginInfo, BasePlugin basePlugin)
+    {
+        foreach (var mod in SkeldMods)
+        {
+            if (mod.GUID == pluginInfo.Metadata.GUID)
+                return;
+        }
+
+        var skeldMod = new SkeldMod(pluginInfo, basePlugin);
+        SkeldMods.Add(skeldMod);
+
+        ChainloaderSequencer.SequenceAction(skeldMod.GUID + ".mod", gid =>
+        {
+            skeldMod.GID = gid;
+            Logger.LogInfo($"Successfully registered {basePlugin.GetType().Name} SkeldMod from {pluginInfo.Metadata.Name}");
+        }, basePlugin == this ? Constants.Chainloader.CHAINLOADER_SKELDMOD_SELF_PRIORITY : Constants.Chainloader.CHAINLOADER_SKELDMOD_PRIORITY);
+
+        RegisterCommandAttribute.RegisterFrom(skeldMod);
+        RegisterGameModeAttribute.RegisterFrom(skeldMod);
+        RegisterCustomRoleAttribute.RegisterFrom(skeldMod);
     }
 
     private void ChainloaderLoad()
     {
+        ChainloaderSequencer.RunSequenced();
     }
 
-    internal static void AddSkeldMod(PluginInfo pluginInfo)
+    public sealed class SkeldMod(PluginInfo pluginInfo, BasePlugin basePlugin) : IUniquelyIdentifiable
     {
-        foreach (var mod in SkeldMods)
-        {
-            if (mod.GetGuid() == pluginInfo.Metadata.GUID)
-                return;
-        }
-
-        var skeldMod = new SkeldMod(pluginInfo);
-        SkeldMods.Add(skeldMod);
-
-        RegisterCommandAttribute.RegisterFrom(skeldMod.Assembly);
-        RegisterGameModeAttribute.RegisterFrom(skeldMod.Assembly);
-        RegisterCustomRoleAttribute.RegisterFrom(skeldMod.Assembly);
-    }
-
-    internal sealed class SkeldMod(PluginInfo pluginInfo)
-    {
-        internal readonly PluginInfo PluginInfo = pluginInfo;
-        internal readonly BasePlugin Plugin = (BasePlugin)pluginInfo.Instance;
-        internal readonly Assembly Assembly = pluginInfo.Instance.GetType().Assembly;
-        internal string GetGuid()
-        {
-            return PluginInfo.Metadata.GUID;
-        }
+        public string GUID { get; } = pluginInfo.Metadata.GUID;
+        public Gid GID { get; internal set; }
+        public readonly PluginInfo PluginInfo = pluginInfo;
+        public readonly BasePlugin Plugin = basePlugin;
+        public readonly Assembly Assembly = basePlugin.GetType().Assembly;
     }
 }

@@ -82,6 +82,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <Folder Include="Modules\" />
 	  <Folder Include="MonoScripts\" />
 	  <Folder Include="Resources\" />
 	  <Folder Include="Utilities\" />

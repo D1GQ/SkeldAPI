@@ -1,11 +1,17 @@
 ﻿using SkeldApi.Commands.Arguments;
+using SkeldApi.Interfaces;
+using SkeldApi.Structs;
 
 namespace SkeldApi.Commands;
 
-public abstract class SkeldCommand
+public abstract class SkeldCommand : IUniquelyIdentifiable
 {
+    public string GUID { get; internal set; } = string.Empty;
+    public Gid GID { get; internal set; }
+    public SkeldPlugin.SkeldMod SkeldMod { get; internal set; } = null!;
     internal string[] CommandNames = [];
     internal SkeldCmdArg[] CommandArguments = [];
+
     internal void Initialize()
     {
         List<SkeldCmdArg> commandArguments = [];
