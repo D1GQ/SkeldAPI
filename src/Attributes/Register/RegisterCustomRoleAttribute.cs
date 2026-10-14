@@ -1,7 +1,7 @@
 ﻿using SkeldApi.Managers;
 using SkeldApi.Roles;
 
-namespace SkeldApi.Attributes;
+namespace SkeldApi.Attributes.Register;
 
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class RegisterCustomRoleAttribute(object roleTypeEnum) : RegisterAttribute<CustomRole, RegisterCustomRoleAttribute>

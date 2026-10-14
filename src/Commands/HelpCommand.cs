@@ -1,4 +1,4 @@
-﻿using SkeldApi.Attributes;
+﻿using SkeldApi.Attributes.Register;
 using SkeldApi.Commands.Arguments;
 
 namespace SkeldApi.Commands;

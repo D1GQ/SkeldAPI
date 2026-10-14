@@ -1,7 +1,7 @@
 ﻿using SkeldApi.Commands;
 using SkeldApi.Managers;
 
-namespace SkeldApi.Attributes;
+namespace SkeldApi.Attributes.Register;
 
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class RegisterCommandAttribute : RegisterAttribute<SkeldCommand, RegisterCommandAttribute>

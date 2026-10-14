@@ -4,7 +4,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
-using SkeldApi.Attributes;
+using SkeldApi.Attributes.Register;
 using SkeldApi.Interfaces;
 using SkeldApi.Managers;
 using SkeldApi.Structs;

@@ -1,4 +1,4 @@
-﻿using SkeldApi.Attributes;
+﻿using SkeldApi.Attributes.Register;
 using SkeldApi.Enums;
 using SkeldApi.Interfaces;
 using System.Collections;

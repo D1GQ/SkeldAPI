@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace SkeldApi.Attributes;
+namespace SkeldApi.Attributes.Register;
 
 public abstract class RegisterAttribute<T, RT> : Attribute where T : class where RT : RegisterAttribute<T, RT>
 {
@@ -20,7 +20,7 @@ public abstract class RegisterAttribute<T, RT> : Attribute where T : class where
         return [.. entries];
     }
 
-    public class RegisterEntry(Type type, RT attribute)
+    public sealed class RegisterEntry(Type type, RT attribute)
     {
         public readonly Type Type = type;
         public readonly RT Attribute = attribute;
