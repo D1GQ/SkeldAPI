@@ -49,7 +49,6 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
         {
             var trampoline = (DynamicMethod)detour.GenerateTrampoline();
             var original = BuildOriginalAdapter(trampoline, target);
-
             Hooks.Add(target, new HookState(entry, stub, detour, original));
         }
         catch
@@ -196,5 +195,6 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
         public readonly Type Type = type;
         public readonly MethodInfo MethodInfo = methodInfo;
         public readonly T Attribute = attribute;
+        public OriginalDelegate? Original => MethodHookAttribute<T, IT>.GetOriginal(this);
     }
 }

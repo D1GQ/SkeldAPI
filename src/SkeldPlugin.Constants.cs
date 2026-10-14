@@ -12,6 +12,7 @@ public partial class SkeldPlugin
             internal const int CHAINLOADER_GAMEMODE_PRIORITY = 3000;
             internal const int CHAINLOADER_CUSTOM_ROLE_PRIORITY = 2000;
             internal const int CHAINLOADER_ROLE_MODIFIER_PRIORITY = 1000;
+            internal const int CHAINLOADER_HOOK_PRIORITY = 0;
         }
     }
 }
