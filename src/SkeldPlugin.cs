@@ -4,6 +4,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
+using SkeldApi.Attributes.Hook;
 using SkeldApi.Attributes.Register;
 using SkeldApi.Interfaces;
 using SkeldApi.Managers;
@@ -65,6 +66,8 @@ public partial class SkeldPlugin : BasePlugin
         RegisterCommandAttribute.RegisterFrom(skeldMod);
         RegisterGameModeAttribute.RegisterFrom(skeldMod);
         RegisterCustomRoleAttribute.RegisterFrom(skeldMod);
+        InnerNetRpc.RegisterFrom(skeldMod);
+        InnerNetCmd.RegisterFrom(skeldMod);
     }
 
     private void ChainloaderLoad()

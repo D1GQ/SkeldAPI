@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace SkeldApi.Attributes.Injection;
+namespace SkeldApi.Attributes.Hook;
 
 public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHookAttribute<T, IT> where IT : class
 {
@@ -36,8 +36,26 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
         return [.. entries];
     }
 
-    public static void HookMethod(HookEntry entry)
+    public static void HookMethod(SkeldPlugin.SkeldMod skeldMod, HookEntry entry)
     {
+        string warning = $"{typeof(T).Name} Failed to hook {entry.MethodInfo.DeclaringType.Name}.{entry.MethodInfo.Name} from {skeldMod.PluginInfo.Metadata.Name}: ";
+        if (entry.MethodInfo.IsGenericMethod)
+        {
+            SkeldPlugin.Logger.LogWarning(warning + "Method cannot be generic!");
+            return;
+        }
+
+        foreach (var parameter in entry.MethodInfo.GetParameters())
+        {
+            if (parameter.IsOut || parameter.ParameterType.IsByRef)
+            {
+                string modifier = parameter.IsOut ? "out" : parameter.IsIn ? "in" : "ref";
+
+                SkeldPlugin.Logger.LogWarning(warning + $"Parameter '{parameter.Name}' uses the unsupported '{modifier}' modifier!");
+                return;
+            }
+        }
+
         var target = entry.MethodInfo;
         if (Hooks.ContainsKey(target))
             return;

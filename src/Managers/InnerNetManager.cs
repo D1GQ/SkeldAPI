@@ -1,4 +1,4 @@
-﻿using SkeldApi.Attributes.Injection;
+﻿using SkeldApi.Attributes.Hook;
 
 namespace SkeldApi.Managers;
 

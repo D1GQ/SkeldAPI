@@ -3,10 +3,10 @@ using SkeldApi.Interfaces;
 using SkeldApi.Managers;
 using SkeldApi.Structs;
 
-namespace SkeldApi.Attributes.Injection;
+namespace SkeldApi.Attributes.Hook;
 
-[AttributeUsage(AttributeTargets.Class)]
-public sealed class InnerNetCmd : MethodHookAttribute<InnerNetCmd, InnerNetObject>, IUniquelyIdentifiable
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class InnerNetRpc : MethodHookAttribute<InnerNetRpc, InnerNetObject>, IUniquelyIdentifiable
 {
     public string GUID { get; internal set; } = string.Empty;
     public Gid GID { get; internal set; }
@@ -16,8 +16,8 @@ public sealed class InnerNetCmd : MethodHookAttribute<InnerNetCmd, InnerNetObjec
         var entries = GetMethodsFrom(skeldMod.Assembly);
         foreach (var entry in entries)
         {
-            InnerNetManager.RegisterInnerNetCmd(skeldMod, entry);
-            HookMethod(entry);
+            InnerNetManager.RegisterInnerNetRpc(skeldMod, entry);
+            HookMethod(skeldMod, entry);
         }
     }
 
