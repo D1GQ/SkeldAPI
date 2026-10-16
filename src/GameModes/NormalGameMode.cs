@@ -1,39 +1,38 @@
 ﻿using SkeldApi.Attributes.Register;
 using SkeldApi.Enums;
-using SkeldApi.Interfaces;
 using System.Collections;
 
 namespace SkeldApi.GameModes;
 
 [RegisterGameMode(SkeldGameModes.Normal)]
-internal class NormalGameMode : IGameMode
+internal class NormalGameMode : CustomGameMode
 {
-    public void OnStart()
+    public override void OnStart()
     {
         throw new NotImplementedException();
     }
 
-    public void Update()
+    public override void Update()
     {
         throw new NotImplementedException();
     }
 
-    public IEnumerator CoFixBlackScreenAfterMeeting(EndGameConditions endGameCondition)
+    public override IEnumerator CoFixBlackScreenAfterMeeting(EndGameConditions endGameCondition)
     {
         throw new NotImplementedException();
     }
 
-    public EndGameConditions CheckEndGame()
+    public override EndGameConditions CheckEndGame()
     {
         throw new NotImplementedException();
     }
 
-    public EndGameConditions CheckEndGameOnExiled(NetworkedPlayerInfo? exiled)
+    public override EndGameConditions CheckEndGameOnExiled(NetworkedPlayerInfo? exiled)
     {
         throw new NotImplementedException();
     }
 
-    public void OnEnd()
+    public override void OnEnd()
     {
         throw new NotImplementedException();
     }

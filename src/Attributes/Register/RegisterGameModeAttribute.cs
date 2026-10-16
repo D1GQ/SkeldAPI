@@ -1,10 +1,10 @@
-﻿using SkeldApi.Interfaces;
+﻿using SkeldApi.GameModes;
 using SkeldApi.Managers;
 
 namespace SkeldApi.Attributes.Register;
 
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class RegisterGameModeAttribute(object gamemodeEnum) : RegisterAttribute<IGameMode, RegisterGameModeAttribute>
+public sealed class RegisterGameModeAttribute(object gamemodeEnum) : RegisterAttribute<CustomGameMode, RegisterGameModeAttribute>
 {
     internal readonly Enum GameMode = (Enum)gamemodeEnum;
 

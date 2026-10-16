@@ -1,4 +1,5 @@
 ﻿using MonoMod.RuntimeDetour;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -8,6 +9,12 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
 {
     public delegate object? OriginalDelegate(IT? instance, object[] args);
 
+    private static readonly MethodInfo DispatchMethod =
+        typeof(MethodHookAttribute<T, IT>).GetMethod(nameof(Dispatch), BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    private static readonly Dictionary<MethodInfo, HookState> HooksByMethod = [];
+    private static readonly List<HookState> HooksById = [];
+
     private sealed class HookState(HookEntry hookEntry, Delegate stub, IDetour detour, OriginalDelegate original)
     {
         public readonly HookEntry HookEntry = hookEntry;
@@ -16,13 +23,11 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
         public readonly OriginalDelegate Original = original;
     }
 
-    private static readonly Dictionary<MethodInfo, HookState> Hooks = [];
-
     public static HookEntry[] GetMethodsFrom(Assembly assembly)
     {
         var entries = new List<HookEntry>();
-        var types = assembly.GetTypes();
-        foreach (var type in types)
+
+        foreach (var type in assembly.GetTypes())
         {
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
             foreach (var method in methods)
@@ -38,36 +43,27 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
 
     public static void HookMethod(SkeldPlugin.SkeldMod skeldMod, HookEntry entry)
     {
-        string warning = $"{typeof(T).Name} Failed to hook {entry.MethodInfo.DeclaringType.Name}.{entry.MethodInfo.Name} from {skeldMod.PluginInfo.Metadata.Name}: ";
-        if (entry.MethodInfo.IsGenericMethod)
-        {
-            SkeldPlugin.Logger.LogWarning(warning + "Method cannot be generic!");
-            return;
-        }
-
-        foreach (var parameter in entry.MethodInfo.GetParameters())
-        {
-            if (parameter.IsOut || parameter.ParameterType.IsByRef)
-            {
-                string modifier = parameter.IsOut ? "out" : parameter.IsIn ? "in" : "ref";
-
-                SkeldPlugin.Logger.LogWarning(warning + $"Parameter '{parameter.Name}' uses the unsupported '{modifier}' modifier!");
-                return;
-            }
-        }
-
         var target = entry.MethodInfo;
-        if (Hooks.ContainsKey(target))
+
+        if (GetUnsupportedReason(target, out string reason))
+        {
+            SkeldPlugin.Logger.LogWarning($"{typeof(T).Name} Failed to hook {target.DeclaringType!.Name}.{target.Name} from {skeldMod.PluginInfo.Metadata.Name}: {reason}");
+            return;
+        }
+
+        if (HooksByMethod.ContainsKey(target))
             return;
 
-        var stub = BuildStub(target);
+        var stub = BuildStub(target, HooksById.Count);
         var detour = new Detour(target, stub.Method);
 
         try
         {
             var trampoline = (DynamicMethod)detour.GenerateTrampoline();
-            var original = BuildOriginalAdapter(trampoline, target);
-            Hooks.Add(target, new HookState(entry, stub, detour, original));
+            var state = new HookState(entry, stub, detour, BuildOriginalAdapter(trampoline, target));
+
+            HooksById.Add(state);
+            HooksByMethod.Add(target, state);
         }
         catch
         {
@@ -76,53 +72,84 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
         }
     }
 
-    public static OriginalDelegate? GetOriginal(HookEntry entry) => Hooks.TryGetValue(entry.MethodInfo, out var state) ? state.Original : null;
+    public static OriginalDelegate? GetOriginal(HookEntry entry) =>
+        HooksByMethod.TryGetValue(entry.MethodInfo, out var state) ? state.Original : null;
 
-    internal static object? Dispatch(MethodInfo target, IT? instance, object[] args)
+    internal static object? Dispatch(int id, IT? instance, object[] args)
     {
-        var state = Hooks[target];
+        var state = HooksById[id];
         return state.HookEntry.Attribute.Hook(state.HookEntry, instance, args, state.Original);
     }
 
-    private static Delegate BuildStub(MethodInfo target)
+    private static bool GetUnsupportedReason(MethodInfo method, out string reason)
     {
-        var parameters = target.GetParameters();
-        var offset = target.IsStatic ? 0 : 1;
-        var signature = target.IsStatic
-            ? parameters.Select(p => p.ParameterType).ToArray()
-            : [target.DeclaringType!, .. parameters.Select(p => p.ParameterType)];
+        if (method.IsGenericMethod)
+        {
+            reason = "Method cannot be generic!";
+            return true;
+        }
+
+        if (!method.IsStatic && method.DeclaringType!.IsValueType)
+        {
+            reason = "Instance methods on value types are unsupported!";
+            return true;
+        }
+
+        foreach (var p in method.GetParameters())
+        {
+            if (p.ParameterType.IsPointer)
+            {
+                reason = $"Parameter '{p.Name}' is a pointer, which is unsupported!";
+                return true;
+            }
+
+            if (p.ParameterType.IsByRef)
+            {
+                reason = $"Parameter '{p.Name}' uses the unsupported '{(p.IsOut ? "out" : p.IsIn ? "in" : "ref")}' modifier!";
+                return true;
+            }
+        }
+
+        reason = string.Empty;
+        return false;
+    }
+
+    private static void EmitCast(ILGenerator il, Type type) =>
+        il.Emit(type.IsValueType ? OpCodes.Unbox_Any : OpCodes.Castclass, type);
+
+    private static Delegate BuildStub(MethodInfo target, int id)
+    {
+        Type[] paramTypes = [.. target.GetParameters().Select(p => p.ParameterType)];
+        Type[] signature = target.IsStatic ? paramTypes : [target.DeclaringType!, .. paramTypes];
+        var offset = signature.Length - paramTypes.Length;
 
         var method = new DynamicMethod(
             $"Hook_{target.DeclaringType?.Name}_{target.Name}",
             target.ReturnType,
-            signature);
+            signature,
+            typeof(MethodHookAttribute<T, IT>),
+            skipVisibility: true);
 
         var il = method.GetILGenerator();
         var args = il.DeclareLocal(typeof(object[]));
 
-        il.Emit(OpCodes.Ldc_I4, parameters.Length);
+        il.Emit(OpCodes.Ldc_I4, paramTypes.Length);
         il.Emit(OpCodes.Newarr, typeof(object));
         il.Emit(OpCodes.Stloc, args);
 
-        for (var i = 0; i < parameters.Length; i++)
+        for (var i = 0; i < paramTypes.Length; i++)
         {
-            var type = parameters[i].ParameterType;
-            if (type.IsByRef || type.IsPointer)
-                throw new NotSupportedException($"Hook arguments of type {type} are not supported: {target}");
-
             il.Emit(OpCodes.Ldloc, args);
             il.Emit(OpCodes.Ldc_I4, i);
-            il.Emit(OpCodes.Ldarg, i + offset);
-            if (type.IsValueType)
-                il.Emit(OpCodes.Box, type);
+            il.Emit(OpCodes.Ldarg, (short)(i + offset));
+
+            if (paramTypes[i].IsValueType)
+                il.Emit(OpCodes.Box, paramTypes[i]);
+
             il.Emit(OpCodes.Stelem_Ref);
         }
 
-        il.Emit(OpCodes.Ldtoken, target);
-        il.Emit(OpCodes.Call, typeof(MethodBase).GetMethod(
-            nameof(MethodBase.GetMethodFromHandle),
-            [typeof(RuntimeMethodHandle)])!);
-        il.Emit(OpCodes.Castclass, typeof(MethodInfo));
+        il.Emit(OpCodes.Ldc_I4, id);
 
         if (target.IsStatic)
             il.Emit(OpCodes.Ldnull);
@@ -133,19 +160,16 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
         }
 
         il.Emit(OpCodes.Ldloc, args);
-        il.Emit(OpCodes.Call, typeof(MethodHookAttribute<T, IT>).GetMethod(
-            nameof(Dispatch), BindingFlags.NonPublic | BindingFlags.Static)!);
+        il.Emit(OpCodes.Call, DispatchMethod);
 
         if (target.ReturnType == typeof(void))
             il.Emit(OpCodes.Pop);
-        else if (target.ReturnType.IsValueType)
-            il.Emit(OpCodes.Unbox_Any, target.ReturnType);
         else
-            il.Emit(OpCodes.Castclass, target.ReturnType);
+            EmitCast(il, target.ReturnType);
 
         il.Emit(OpCodes.Ret);
 
-        return method.CreateDelegate(CreateDelegateType(target.ReturnType, signature));
+        return method.CreateDelegate(Expression.GetDelegateType([.. signature, target.ReturnType]));
     }
 
     private static OriginalDelegate BuildOriginalAdapter(DynamicMethod trampoline, MethodInfo target)
@@ -167,11 +191,10 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
 
         for (var i = 0; i < parameters.Length; i++)
         {
-            var type = parameters[i].ParameterType;
             il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Ldc_I4, i);
             il.Emit(OpCodes.Ldelem_Ref);
-            il.Emit(type.IsValueType ? OpCodes.Unbox_Any : OpCodes.Castclass, type);
+            EmitCast(il, parameters[i].ParameterType);
         }
 
         il.Emit(OpCodes.Call, trampoline);
@@ -185,27 +208,6 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
         return method.CreateDelegate<OriginalDelegate>();
     }
 
-    private static Type CreateDelegateType(Type returnType, Type[] parameters)
-    {
-        var assembly = AssemblyBuilder.DefineDynamicAssembly(
-            new AssemblyName($"SkeldHook_{Guid.NewGuid():N}"), AssemblyBuilderAccess.Run);
-        var builder = assembly.DefineDynamicModule("Hooks").DefineType(
-            "HookDelegate", TypeAttributes.Public | TypeAttributes.Sealed, typeof(MulticastDelegate));
-
-        builder.DefineConstructor(
-            MethodAttributes.Public | MethodAttributes.RTSpecialName |
-            MethodAttributes.HideBySig | MethodAttributes.SpecialName,
-            CallingConventions.Standard, [typeof(object), typeof(IntPtr)])
-            .SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
-
-        builder.DefineMethod("Invoke",
-            MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.NewSlot |
-            MethodAttributes.HideBySig, returnType, parameters)
-            .SetImplementationFlags(MethodImplAttributes.Runtime | MethodImplAttributes.Managed);
-
-        return builder.CreateType()!;
-    }
-
     protected abstract object? Hook(HookEntry hookEntry, IT? instance, object[] args, OriginalDelegate original);
 
     public sealed class HookEntry(Type type, MethodInfo methodInfo, T attribute)
@@ -213,6 +215,6 @@ public abstract class MethodHookAttribute<T, IT> : Attribute where T : MethodHoo
         public readonly Type Type = type;
         public readonly MethodInfo MethodInfo = methodInfo;
         public readonly T Attribute = attribute;
-        public OriginalDelegate? Original => MethodHookAttribute<T, IT>.GetOriginal(this);
+        public OriginalDelegate? Original => GetOriginal(this);
     }
 }

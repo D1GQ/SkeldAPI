@@ -4,7 +4,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
-using SkeldApi.Attributes.Hook;
+using SkeldApi.Attributes.InnerNet;
 using SkeldApi.Attributes.Register;
 using SkeldApi.Interfaces;
 using SkeldApi.Managers;
@@ -35,7 +35,7 @@ public partial class SkeldPlugin : BasePlugin
         }
 
         IL2CPPChainloader.Instance.PluginLoad += ChainloaderPluginLoad;
-        IL2CPPChainloader.Instance.Finished += ChainloaderLoad;
+        IL2CPPChainloader.Instance.Finished += ChainloaderFinished;
     }
 
     private void ChainloaderPluginLoad(PluginInfo pluginInfo, Assembly assembly, BasePlugin basePlugin)
@@ -70,9 +70,10 @@ public partial class SkeldPlugin : BasePlugin
         InnerNetCmd.RegisterFrom(skeldMod);
     }
 
-    private void ChainloaderLoad()
+    private void ChainloaderFinished()
     {
         ChainloaderSequencer.RunSequenced();
+        InnerNetManager.OnChainloaderFinished();
     }
 
     public sealed class SkeldMod(PluginInfo pluginInfo, BasePlugin basePlugin) : IUniquelyIdentifiable

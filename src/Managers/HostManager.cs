@@ -1,7 +1,7 @@
 ﻿using AmongUs.InnerNet.GameDataMessages;
 using Hazel;
 using InnerNet;
-using SkeldApi.Network;
+using SkeldApi.Network.InnerNet;
 
 namespace SkeldApi.Managers;
 

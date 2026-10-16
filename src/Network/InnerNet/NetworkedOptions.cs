@@ -6,7 +6,7 @@ using InnerNet;
 using SkeldApi.Managers;
 using SkeldApi.Structs;
 
-namespace SkeldApi.Network;
+namespace SkeldApi.Network.InnerNet;
 
 internal sealed class NetworkedOptions
 {
