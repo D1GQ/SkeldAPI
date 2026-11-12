@@ -5,6 +5,8 @@ namespace SkeldApi.Managers;
 
 public static class InnerNetManager
 {
+    public const byte SKELD_API_RPC = 222;
+
     private sealed record MethodRpcInfo(uint Id, bool IsCmd);
 
     internal static void RegisterInnerNetRpc(SkeldPlugin.SkeldMod skeldMod, InnerNetRpc.HookEntry hookEntry)

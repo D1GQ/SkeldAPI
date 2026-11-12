@@ -6,7 +6,7 @@ namespace SkeldApi.GameModes;
 
 public abstract class CustomGameMode : MonoBehaviour
 {
-    public abstract void OnStart();
+    public abstract IEnumerator CoStart();
 
     public abstract void Update();
 
@@ -16,5 +16,5 @@ public abstract class CustomGameMode : MonoBehaviour
 
     public abstract IEnumerator CoFixBlackScreenAfterMeeting(EndGameConditions endGameCondition);
 
-    public abstract void OnEnd();
+    public abstract IEnumerator CoEnd();
 }

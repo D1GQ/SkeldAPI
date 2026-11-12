@@ -82,7 +82,9 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-	  <Folder Include="Modules\InnerNet\" />
+	  <Folder Include="Events\Gameplay\" />
+	  <Folder Include="Events\Player\" />
+	  <Folder Include="Events\Role\" />
 	  <Folder Include="MonoScripts\" />
 	  <Folder Include="Resources\" />
 	</ItemGroup>

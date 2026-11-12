@@ -9,14 +9,15 @@ public abstract class CustomInnerNetObject : MonoBehaviour, IUniquelyIdentifiabl
 {
     public string GUID { get; internal set; } = string.Empty;
     public Gid GID { get; internal set; }
-    public InnerNetObject InnerNetObject { get; internal set; } = null!;
+    public InnerNetObject InnerNetObject { get; private set; } = null!;
 
-    internal void HostInitialize()
+    internal void Initialize(InnerNetObject innerNetObject)
     {
-        OnHostInitialize();
+        InnerNetObject = innerNetObject;
+        OnInitialize();
     }
 
-    protected virtual void OnHostInitialize()
+    protected virtual void OnInitialize()
     {
     }
 }
